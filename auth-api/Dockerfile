@@ -15,16 +15,19 @@ COPY . .
 RUN go build -o auth-api .
 
 # Step 2: Run the app
-FROM alpine:latest
+FROM debian:latest
 
 # Install necessary libraries
-RUN apk --no-cache add ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates
 
 # Copy the compiled Go binary from the build stage
 COPY --from=build /app/auth-api /usr/local/bin/
 
 # Expose the app port
-EXPOSE 8080
+EXPOSE 8081
+
+# Set the environment variable AUTH_API_PORT
+ENV AUTH_API_PORT 8081
 
 # Start the app
-CMD ["auth-api"]
+CMD ["/usr/local/bin/auth-api"]

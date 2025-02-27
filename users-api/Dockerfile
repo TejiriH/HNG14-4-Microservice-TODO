@@ -1,27 +1,28 @@
-# Step 1: Build the Spring Boot app
+# Use Maven with OpenJDK 11 for building the application
 FROM maven:3.6-jdk-11 AS build
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the pom.xml and install dependencies
-COPY pom.xml ./
-RUN mvn dependency:go-offline
+# Copy the pom.xml and download dependencies first
+COPY pom.xml .
+RUN mvn clean install -U
 
-# Copy the rest of the application files
+# Copy the rest of the source code
 COPY src /app/src
 
-# Build the app
+# Package the application
 RUN mvn clean package
 
-# Step 2: Run the app
+# Final runtime image using OpenJDK 11 slim image
 FROM openjdk:11-jre-slim
 
-# Copy the JAR file from the build stage
-COPY --from=build /app/target/users-api.jar /app/users-api.jar
+# Copy the built JAR file from the build stage
+COPY --from=build /app/target/users-api-0.0.1-SNAPSHOT.jar /app/users-api.jar
 
-# Expose the app port
-EXPOSE 8082
+# Expose the app port (corrected to 8083)
+EXPOSE 8083
 
-# Run the Spring Boot application
+# Run the application
 CMD ["java", "-jar", "/app/users-api.jar"]
+
+
