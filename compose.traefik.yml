@@ -4,14 +4,19 @@ services:
     image: docker.io/library/traefik:v3.3.3
     container_name: traefik
     ports:
-      - 80:80   # Only HTTP for local development
+      - 80:80
+      - 443:443
     volumes:
       - /run/docker.sock:/run/docker.sock:ro
       - ./traefik.yaml:/etc/traefik/traefik.yml
+      - ./letsencrypt:/letsencrypt
+      # - /etc/letsencrypt:/letsencrypt:ro
     networks:
       - app-network
     restart: unless-stopped
 
 networks:
   app-network:
-    external: true
+    external: true  
+
+
