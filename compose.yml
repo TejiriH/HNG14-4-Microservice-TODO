@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend-cont
+    restart: unless-stopped
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      NODE_ENV: "development"
+      PORT: ${PORT}
+      AUTH_API_ADDRESS: ${AUTH_API_ADDRESS}
+      TODOS_API_ADDRESS: ${TODOS_API_ADDRESS}
+    depends_on:
+      - auth-api
+      - todos-api
+    networks:
+      - app-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  auth-api:
+    build: ./auth-api
+    container_name: auth-api-cont
+    restart: unless-stopped
+    ports:
+      - "${AUTH_API_PORT}:${AUTH_API_PORT}"
+    environment:
+      AUTH_API_PORT: ${AUTH_API_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      USERS_API_ADDRESS: ${USERS_API_ADDRESS}
+    depends_on:
+      - users-api
+    networks:
+      - app-network
+
+  todos-api:
+    build: ./todos-api
+    container_name: todos-api-cont
+    restart: unless-stopped
+    ports:
+      - "${TODOS_API_PORT}:${TODOS_API_PORT}"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_CHANNEL: ${REDIS_CHANNEL}
+    depends_on:
+      - redis-queue
+    networks:
+      - app-network
+
+  users-api:
+    build: ./users-api
+    container_name: users-api-cont
+    restart: unless-stopped
+    ports:
+      - "${USERS_API_PORT}:${USERS_API_PORT}"
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
+
+  log-message-processor:
+    build: ./log-message-processor
+    container_name: log-message-processor-cont
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_CHANNEL: ${REDIS_CHANNEL}
+    depends_on:
+      - redis-queue
+    networks:
+      - app-network
+
+  redis-queue:
+    image: redis:7
+    container_name: redis-queue-cont
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+

@@ -1,0 +1,17 @@
+---
+services:
+  traefik:
+    image: docker.io/library/traefik:v3.3.3
+    container_name: traefik
+    ports:
+      - 80:80   # Only HTTP for local development
+    volumes:
+      - /run/docker.sock:/run/docker.sock:ro
+      - ./traefik.yaml:/etc/traefik/traefik.yml
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    external: true
